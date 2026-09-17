@@ -1,0 +1,68 @@
+services:
+
+  prometheus:
+    image: prom/prometheus:v3.14.0
+    container_name: prometheus
+
+    ports:
+      - "9090:9090"
+
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+    networks:
+      - monitoring
+
+    restart: unless-stopped
+
+
+  blackbox:
+    image: quay.io/prometheus/blackbox-exporter:v0.28.0
+    container_name: blackbox
+
+    ports:
+      - "9115:9115"
+
+    volumes:
+      - ./blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+
+    command:
+      - "--config.file=/etc/blackbox_exporter/config.yml"
+
+    cap_add:
+      - NET_RAW
+
+    networks:
+      - monitoring
+      - clab
+
+    restart: unless-stopped
+
+
+  grafana:
+    image: grafana/grafana:13.2.2
+    container_name: grafana
+
+    ports:
+      - "3000:3000"
+
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+    networks:
+      - monitoring
+
+    restart: unless-stopped
+
+
+networks:
+
+  monitoring:
+    driver: bridge
+
+  clab:
+    external: true
+
+
+volumes:
+  grafana-data:

@@ -1,0 +1,61 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+
+  - job_name: "prometheus"
+    static_configs:
+      - targets:
+          - "prometheus:9090"
+
+  - job_name: "network_devices"
+    metrics_path: /probe
+
+    params:
+      module:
+        - icmp
+
+    static_configs:
+      - targets:
+          - "172.20.20.2"
+        labels:
+          device: "R1"
+          role: "router"
+
+      - targets:
+          - "172.20.20.3"
+        labels:
+          device: "R2"
+          role: "router"
+
+      - targets:
+          - "172.20.20.4"
+        labels:
+          device: "R3"
+          role: "router"
+
+      - targets:
+          - "172.20.20.5"
+        labels:
+          device: "PC1"
+          role: "host"
+
+      - targets:
+          - "172.20.20.6"
+        labels:
+          device: "PC2"
+          role: "host"
+
+    relabel_configs:
+
+      - source_labels:
+          - __address__
+        target_label: __param_target
+
+      - source_labels:
+          - __param_target
+        target_label: instance
+
+      - target_label: __address__
+        replacement: "blackbox:9115"
